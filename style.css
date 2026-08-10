@@ -145,6 +145,16 @@ button { border: 0; cursor: pointer; }
 }
 
 .themed-card { border: var(--border-main) solid var(--theme); }
+
+/* A/B 메인 프로필 카드:
+   실제 border의 둥근 '안쪽 경계'가 코너 라벨 위에 얇은 곡선으로 보였기 때문에
+   이 카드에 한해서 border를 제거하고 inset shadow로 같은 두께의 외곽선을 재현한다.
+   inset shadow는 자식인 A/B 라벨보다 아래에서 그려져 라벨 내부에 곡선이 남지 않는다. */
+.profile-card.themed-card {
+  border: 0;
+  box-shadow: inset 0 0 0 var(--border-main) var(--theme);
+}
+
 .themed-soft {
   border: var(--border-main) solid rgba(var(--theme-rgb), .78);
   background: var(--theme-soft);
@@ -171,15 +181,27 @@ button { border: 0; cursor: pointer; }
   top: 0;
   width: 62px;
   height: 62px;
+
   display: grid;
   place-items: center;
   color: white;
   background: var(--theme);
+  border: 0;
+  outline: 0;
+  box-shadow: none;
   font-size: 30px;
   font-weight: 900;
 }
-.theme-a .corner-badge { left: 0; border-radius: 20px 0 14px 0; }
-.theme-b .corner-badge { right: 0; border-radius: 0 20px 0 14px; }
+
+.theme-a .corner-badge {
+  left: 0;
+  border-radius: 0 0 14px 0;
+}
+
+.theme-b .corner-badge {
+  right: 0;
+  border-radius: 0 0 0 14px;
+}
 
 .image-slot {
   position: relative;
@@ -824,4 +846,10 @@ body.export-desktop .relation-details {
 
 body.export-desktop .summary-main {
   font-size: 28px !important;
+}
+
+.corner-badge::before,
+.corner-badge::after {
+  content: none !important;
+  display: none !important;
 }
