@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>페어 프로필 시트</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <header class="editor-bar no-export">
+    <div class="editor-group">
+      <strong>페어 색상</strong>
+      <label>A <input id="colorA" type="color" value="#e31414"></label>
+      <label>B <input id="colorB" type="color" value="#3978d4"></label>
+    </div>
+
+    <div class="editor-group">
+      <strong>수위 설정 표시</strong>
+      <label><input id="toggleLevelA" type="checkbox" checked> A</label>
+      <label><input id="toggleLevelB" type="checkbox" checked> B</label>
+    </div>
+
+    <div class="editor-group">
+      <strong>세계관 표시</strong>
+      <label><input id="toggleWorld" type="checkbox" checked> ON</label>
+    </div>
+
+    <div class="editor-group">
+      <strong>선택 텍스트</strong>
+      <button id="boldBtn" type="button">B</button>
+      <span class="hint">텍스트 선택 후 B 또는 Ctrl+B</span>
+    </div>
+
+    <div class="editor-group">
+      <button id="exportPngBtn" type="button">PNG 저장</button>
+    </div>
+
+    <button id="toggleEditor" class="subtle" type="button">편집바 접기</button>
+  </header>
+
+  <div class="export-frame" id="exportTarget">
+  <main class="sheet">
+    <section class="world-card" id="worldCard">
+      <div class="world-title">세계관</div>
+      <div class="world-content editable" contenteditable="true" spellcheck="false">
+        캐릭터들이 공유하는 세계의 배경, 시대, 사회 구조, 공통 설정 등을 입력하세요.
+      </div>
+    </section>
+    <section class="top-grid">
+      <!-- A -->
+      <article class="character-column theme-a" id="columnA" data-theme-side="a">
+        <div class="character-stack profile-level-stack">
+          <section class="profile-card themed-card">
+            <div class="corner-badge">A</div>
+
+            <div class="image-slot main-image" data-slot="a-main">
+              <img alt="" draggable="false">
+              <div class="image-placeholder">A 이미지</div>
+              <input class="image-input" type="file" accept="image/*" hidden>
+              <div class="image-tools no-export">
+                <button type="button" data-action="upload">이미지</button>
+                <button type="button" data-action="zoom-out">−</button>
+                <button type="button" data-action="zoom-in">＋</button>
+                <button type="button" data-action="reset">리셋</button>
+                <span class="source-color-tools">
+                  출처색
+                  <button type="button" data-source-color="auto">A</button>
+                  <button type="button" data-source-color="white">W</button>
+                  <button type="button" data-source-color="gray">G</button>
+                  <button type="button" data-source-color="black">K</button>
+                </span>
+              </div>
+              <div class="image-source" contenteditable="true" spellcheck="false">@출처</div>
+            </div>
+
+            <div class="identity-wrap">
+              <div class="identity-top">
+                <div class="name" contenteditable="true" spellcheck="false">A 이름 입력</div>
+                <div class="identity-side">
+                  <div class="catchphrase" contenteditable="true" spellcheck="false">캐치프레이즈 입력</div>
+                  <input class="meta-inline" value="나이 · 직급 · 키" aria-label="쉼표로 구분하는 소개 정보">
+                </div>
+              </div>
+
+              <div class="tag-row" contenteditable="true" spellcheck="false">
+                <span>#키워드1</span><span>#키워드2</span><span>#키워드3</span><span>#키워드4</span>
+              </div>
+            </div>
+
+            <div class="bio editable" contenteditable="true" spellcheck="false">
+              캐릭터의 기본 설정과 성격, 배경 등을 자유롭게 입력하세요.<br>
+              문단이 필요하면 줄바꿈해서 작성할 수 있습니다.<br><br>
+              <strong>굵게 표시한 문장은 A 테마색으로 강조됩니다.</strong>
+            </div>
+          </section>
+
+          <section class="ranking-card themed-soft level-card" data-level-card="a">
+            <h3>수위 설정</h3>
+            <div class="editable" contenteditable="true" spellcheck="false">
+              수위 관련 설정이나 허용 범위 등을 자유롭게 적는 영역입니다.<br>
+              필요하지 않다면 상단 스위치에서 이 영역을 끌 수 있습니다.<br>
+              <strong>굵게 표시한 문장은 A 테마색으로 강조됩니다.</strong>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <!-- CENTER -->
+      <article class="relation-column">
+        <section class="relation-panel">
+          <div class="relation-stack">
+            <div class="relation-summary fixed-blue">
+              <h3>관계 요약</h3>
+              <div class="editable summary-copy" contenteditable="true" spellcheck="false">
+                두 사람의 관계를 한두 문단으로 요약하는 영역입니다.<br>
+                관계의 시작점, 현재 상태, 핵심 감정 등을 적어주세요.<br><br>
+                필요한 만큼 자유롭게 수정할 수 있습니다.
+              </div>
+
+              <div class="summary-box editable" contenteditable="true" spellcheck="false">
+                <div class="summary-main">핵심 관계 키워드</div>
+                <div class="summary-sub">짧은 관계 해석이나 보조 설명</div>
+              </div>
+            </div>
+
+            <div class="relation-details">
+              <section class="relation-split relation-a">
+                <h4>A ▶ B</h4>
+                <div class="editable" contenteditable="true" spellcheck="false">
+                  · A가 B를 어떻게 생각하는지 적는 영역입니다.<br>
+                  · 감정, 태도, 행동 방식 등을 자유롭게 정리하세요.<br>
+                  · <strong>굵게 쓰면 A 색상</strong>으로 표시됩니다.
+                </div>
+              </section>
+
+              <section class="relation-split relation-b">
+                <h4>A ◀ B</h4>
+                <div class="editable" contenteditable="true" spellcheck="false">
+                  · B가 A를 어떻게 생각하는지 적는 영역입니다.<br>
+                  · 감정, 태도, 행동 방식 등을 자유롭게 정리하세요.<br>
+                  · <strong>굵게 쓰면 B 색상</strong>으로 표시됩니다.
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <section class="ng-card fixed-pink">
+            <h3>!! NG !!</h3>
+            <div class="editable" contenteditable="true" spellcheck="false">
+              · 원하지 않는 관계 해석이나 행동을 적어주세요.<br>
+              · 피하고 싶은 표현이나 설정을 추가할 수 있습니다.<br>
+              · 이 영역의 색상은 페어 테마와 무관하게 고정됩니다.
+            </div>
+          </section>
+        </section>
+      </article>
+
+      <!-- B -->
+      <article class="character-column theme-b" id="columnB" data-theme-side="b">
+        <div class="character-stack profile-level-stack">
+          <section class="profile-card themed-card">
+            <div class="corner-badge">B</div>
+
+            <div class="image-slot main-image" data-slot="b-main">
+              <img alt="" draggable="false">
+              <div class="image-placeholder">B 이미지</div>
+              <input class="image-input" type="file" accept="image/*" hidden>
+              <div class="image-tools no-export">
+                <button type="button" data-action="upload">이미지</button>
+                <button type="button" data-action="zoom-out">−</button>
+                <button type="button" data-action="zoom-in">＋</button>
+                <button type="button" data-action="reset">리셋</button>
+                <span class="source-color-tools">
+                  출처색
+                  <button type="button" data-source-color="auto">A</button>
+                  <button type="button" data-source-color="white">W</button>
+                  <button type="button" data-source-color="gray">G</button>
+                  <button type="button" data-source-color="black">K</button>
+                </span>
+              </div>
+              <div class="image-source" contenteditable="true" spellcheck="false">@출처</div>
+            </div>
+
+            <div class="identity-wrap">
+              <div class="identity-top">
+                <div class="name" contenteditable="true" spellcheck="false">B 이름 입력</div>
+                <div class="identity-side">
+                  <div class="catchphrase" contenteditable="true" spellcheck="false">캐치프레이즈 입력</div>
+                  <input class="meta-inline" value="나이 · 직급 · 키" aria-label="쉼표로 구분하는 소개 정보">
+                </div>
+              </div>
+
+              <div class="tag-row" contenteditable="true" spellcheck="false">
+                <span>#키워드1</span><span>#키워드2</span><span>#키워드3</span><span>#키워드4</span>
+              </div>
+            </div>
+
+            <div class="bio editable" contenteditable="true" spellcheck="false">
+              캐릭터의 기본 설정과 성격, 배경 등을 자유롭게 입력하세요.<br>
+              문단이 필요하면 줄바꿈해서 작성할 수 있습니다.<br><br>
+              <strong>굵게 표시한 문장은 B 테마색으로 강조됩니다.</strong>
+            </div>
+          </section>
+
+          <section class="ranking-card themed-soft level-card" data-level-card="b">
+            <h3>수위 설정</h3>
+            <div class="editable" contenteditable="true" spellcheck="false">
+              수위 관련 설정이나 허용 범위 등을 자유롭게 적는 영역입니다.<br>
+              필요하지 않다면 상단 스위치에서 이 영역을 끌 수 있습니다.<br>
+              <strong>굵게 표시한 문장은 B 테마색으로 강조됩니다.</strong>
+            </div>
+          </section>
+        </div>
+      </article>
+    </section>
+
+    <section class="pair-images-grid">
+      <div class="image-slot pair-image" data-slot="pair-1">
+        <img alt="" draggable="false">
+        <div class="image-placeholder">관계 이미지 1</div>
+        <input class="image-input" type="file" accept="image/*" hidden>
+        <div class="image-tools no-export">
+          <button type="button" data-action="upload">이미지</button>
+          <button type="button" data-action="zoom-out">−</button>
+          <button type="button" data-action="zoom-in">＋</button>
+          <button type="button" data-action="reset">리셋</button>
+          <span class="source-color-tools">출처색
+            <button type="button" data-source-color="auto">A</button>
+            <button type="button" data-source-color="white">W</button>
+            <button type="button" data-source-color="gray">G</button>
+            <button type="button" data-source-color="black">K</button>
+          </span>
+        </div>
+        <div class="image-source" contenteditable="true" spellcheck="false">@출처</div>
+      </div>
+
+      <div class="image-slot pair-image" data-slot="pair-2">
+        <img alt="" draggable="false">
+        <div class="image-placeholder">관계 이미지 2</div>
+        <input class="image-input" type="file" accept="image/*" hidden>
+        <div class="image-tools no-export">
+          <button type="button" data-action="upload">이미지</button>
+          <button type="button" data-action="zoom-out">−</button>
+          <button type="button" data-action="zoom-in">＋</button>
+          <button type="button" data-action="reset">리셋</button>
+          <span class="source-color-tools">출처색
+            <button type="button" data-source-color="auto">A</button>
+            <button type="button" data-source-color="white">W</button>
+            <button type="button" data-source-color="gray">G</button>
+            <button type="button" data-source-color="black">K</button>
+          </span>
+        </div>
+        <div class="image-source" contenteditable="true" spellcheck="false">@출처</div>
+      </div>
+
+      <div class="image-slot pair-image" data-slot="pair-3">
+        <img alt="" draggable="false">
+        <div class="image-placeholder">관계 이미지 3</div>
+        <input class="image-input" type="file" accept="image/*" hidden>
+        <div class="image-tools no-export">
+          <button type="button" data-action="upload">이미지</button>
+          <button type="button" data-action="zoom-out">−</button>
+          <button type="button" data-action="zoom-in">＋</button>
+          <button type="button" data-action="reset">리셋</button>
+          <span class="source-color-tools">출처색
+            <button type="button" data-source-color="auto">A</button>
+            <button type="button" data-source-color="white">W</button>
+            <button type="button" data-source-color="gray">G</button>
+            <button type="button" data-source-color="black">K</button>
+          </span>
+        </div>
+        <div class="image-source" contenteditable="true" spellcheck="false">@출처</div>
+      </div>
+    </section>
+
+    <section class="details-grid">
+      <div class="details-column theme-a" data-theme-side="a">
+        <section class="detail-card themed-card">
+          <h3>성격 · 특징</h3>
+          <div class="editable" contenteditable="true" spellcheck="false">
+            · 성격과 행동 특징을 항목별로 적어주세요.<br>
+            · 습관, 가치관, 대인관계 특징 등을 추가할 수 있습니다.<br>
+            · <strong>굵게 쓰는 부분은 A 색상으로 강조됩니다.</strong>
+          </div>
+        </section>
+        <section class="detail-card themed-soft">
+          <h3>외형 묘사</h3>
+          <div class="editable" contenteditable="true" spellcheck="false">
+            키, 체형, 머리색, 눈색, 표정, 인상 등 외형 정보를 적어주세요.<br>
+            자주 입는 옷이나 눈에 띄는 특징도 함께 정리할 수 있습니다.
+          </div>
+        </section>
+        <section class="detail-card themed-card">
+          <h3>말투 · 대화 방식</h3>
+          <div class="editable" contenteditable="true" spellcheck="false">
+            말투의 높낮이, 존댓말 여부, 자주 쓰는 표현 등을 적어주세요.<br><br>
+            짧은 예문을 여러 줄로 추가해도 됩니다.<br>
+            <strong>강조한 문장은 A 테마색으로 표시됩니다.</strong>
+          </div>
+          <div class="like-row">
+            <b>호칭</b>
+            <span contenteditable="true" spellcheck="false">상대 호칭 / 별칭</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="details-column theme-b" data-theme-side="b">
+        <section class="detail-card themed-card">
+          <h3>성격 · 특징</h3>
+          <div class="editable" contenteditable="true" spellcheck="false">
+            · 성격과 행동 특징을 항목별로 적어주세요.<br>
+            · 습관, 가치관, 대인관계 특징 등을 추가할 수 있습니다.<br>
+            · <strong>굵게 쓰는 부분은 B 색상으로 강조됩니다.</strong>
+          </div>
+        </section>
+        <section class="detail-card themed-soft">
+          <h3>외형 묘사</h3>
+          <div class="editable" contenteditable="true" spellcheck="false">
+            키, 체형, 머리색, 눈색, 표정, 인상 등 외형 정보를 적어주세요.<br>
+            자주 입는 옷이나 눈에 띄는 특징도 함께 정리할 수 있습니다.
+          </div>
+        </section>
+        <section class="detail-card themed-card">
+          <h3>말투 · 상냥한 존댓말</h3>
+          <div class="editable" contenteditable="true" spellcheck="false">
+            말투의 높낮이, 존댓말 여부, 자주 쓰는 표현 등을 적어주세요.<br><br>
+            짧은 예문을 여러 줄로 추가해도 됩니다.<br>
+            <strong>강조한 문장은 B 테마색으로 표시됩니다.</strong>
+          </div>
+          <div class="like-row">
+            <b>호칭</b>
+            <span contenteditable="true" spellcheck="false">상대 호칭 / 별칭</span>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+  </div>
+
+  <button id="selectionBoldBtn" class="selection-bold-btn no-export" type="button" aria-label="선택한 글자 굵게">B</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
