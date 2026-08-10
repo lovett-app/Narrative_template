@@ -248,11 +248,15 @@
     exportPngBtn.textContent = '저장중...';
     exportPngBtn.disabled = true;
     document.body.classList.add('exporting');
+    document.body.classList.add('export-desktop');
 
     try {
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
+
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      fitAllNames();
 
       const canvas = await html2canvas(exportTarget, {
         backgroundColor: getComputedStyle(exportTarget).backgroundColor,
@@ -274,6 +278,8 @@
       console.error(err);
     } finally {
       document.body.classList.remove('exporting');
+      document.body.classList.remove('export-desktop');
+      requestAnimationFrame(fitAllNames);
       exportPngBtn.textContent = originalText;
       exportPngBtn.disabled = false;
     }

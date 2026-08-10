@@ -563,3 +563,265 @@ input:focus {
 .selection-bold-btn.is-visible {
   display: block;
 }
+
+
+/* ===== 모바일 편집 대응 ===== */
+@media (max-width: 760px) {
+  body { font-size: 14px; }
+
+  .editor-bar {
+    position: sticky;
+    top: 0;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .editor-bar .editor-group {
+    flex: 0 0 auto;
+    padding: 6px 8px;
+    border: 1px solid #e0e5ea;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .editor-bar .editor-group > strong {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .editor-bar .subtle {
+    flex: 0 0 auto;
+    margin-left: 0;
+    white-space: nowrap;
+  }
+
+  .export-frame {
+    width: 100%;
+    margin: 0;
+    padding: 14px;
+  }
+
+  .sheet { width: 100%; }
+
+  .world-card {
+    margin-bottom: 12px;
+    padding: 15px 16px 17px;
+    border-radius: 20px;
+  }
+
+  .top-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #columnA { order: 1; }
+  .relation-column { order: 2; grid-column: auto; }
+  #columnB { order: 3; }
+
+  .profile-card,
+  .ranking-card,
+  .relation-summary,
+  .relation-details,
+  .ng-card,
+  .detail-card,
+  .pair-image,
+  .world-card {
+    border-radius: 20px;
+  }
+
+  .corner-badge {
+    width: 52px;
+    height: 52px;
+    font-size: 25px;
+  }
+
+  .main-image {
+    height: min(112vw, 470px);
+    margin: 12px 12px 0;
+    border-radius: 16px;
+  }
+
+  .character-column.level-off .main-image {
+    height: min(125vw, 530px);
+  }
+
+  .identity-wrap { padding: 13px 15px 8px; }
+
+  .identity-top {
+    grid-template-columns: minmax(0, 1fr) minmax(120px, .72fr);
+    gap: 10px;
+    align-items: end;
+  }
+
+  .name { font-size: 40px; }
+
+  .identity-side {
+    min-width: 0;
+    text-align: right;
+  }
+
+  .catchphrase { font-size: 13px; }
+
+  .meta-inline {
+    font-size: 12px;
+    text-align: right;
+  }
+
+  .tag-row {
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+
+  .tag-row span {
+    padding: 5px 11px;
+    font-size: 13px;
+  }
+
+  .bio,
+  .ranking-card,
+  .relation-summary,
+  .relation-details,
+  .ng-card,
+  .detail-card {
+    font-size: 13px;
+  }
+
+  .bio { padding: 9px 15px 20px; }
+
+  .profile-level-stack .ranking-card {
+    margin-top: -40px;
+    padding: 52px 15px 16px;
+  }
+
+  .relation-details {
+    margin-top: -38px;
+    padding: 52px 13px 13px;
+  }
+
+  .summary-main { font-size: 23px; }
+  .summary-sub { font-size: 11px; }
+
+  .pair-images-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .pair-image { height: min(125vw, 520px); }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .details-column { gap: 12px; }
+
+  .image-tools {
+    left: 7px;
+    top: 7px;
+    max-width: calc(100% - 14px);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .image-tools button,
+  .source-color-tools {
+    min-height: 30px;
+  }
+
+  .image-source {
+    right: 9px;
+    bottom: 7px;
+    font-size: 11px;
+  }
+
+  .selection-bold-btn {
+    width: 42px;
+    height: 38px;
+    line-height: 36px;
+    font-size: 18px;
+  }
+}
+
+/* 모바일에서도 PNG는 기존 3열 결과물로 저장 */
+body.export-desktop .export-frame {
+  width: 1468px !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 34px 34px 38px !important;
+}
+
+body.export-desktop .sheet {
+  width: 1400px !important;
+  max-width: none !important;
+}
+
+body.export-desktop .top-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, .84fr) minmax(0, 1.08fr) !important;
+  gap: 16px !important;
+}
+
+body.export-desktop #columnA,
+body.export-desktop .relation-column,
+body.export-desktop #columnB {
+  order: initial !important;
+  grid-column: auto !important;
+}
+
+body.export-desktop .pair-images-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+body.export-desktop .details-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+body.export-desktop .identity-top {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 16px !important;
+}
+
+body.export-desktop .identity-side {
+  min-width: 190px !important;
+  text-align: right !important;
+}
+
+body.export-desktop .name { font-size: 54px; }
+
+body.export-desktop .main-image {
+  height: 408px !important;
+  margin: 16px 16px 0 !important;
+}
+
+body.export-desktop .character-column.level-off .main-image {
+  height: 505px !important;
+}
+
+body.export-desktop .pair-image {
+  height: 560px !important;
+}
+
+body.export-desktop .profile-level-stack .ranking-card {
+  margin-top: -44px !important;
+  padding-top: 56px !important;
+}
+
+body.export-desktop .relation-details {
+  margin-top: -42px !important;
+  padding-top: 56px !important;
+}
+
+body.export-desktop .summary-main {
+  font-size: 28px !important;
+}
