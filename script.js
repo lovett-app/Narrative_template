@@ -10,6 +10,10 @@
   const toggleWorld = document.getElementById('toggleWorld');
   const worldCard = document.getElementById('worldCard');
   const exportPngBtn = document.getElementById('exportPngBtn');
+  const saveDataBtn = document.getElementById('saveDataBtn');
+  const loadDataBtn = document.getElementById('loadDataBtn');
+  const loadDataInput = document.getElementById('loadDataInput');
+  const dataStatus = document.getElementById('dataStatus');
   const selectionBoldBtn = document.getElementById('selectionBoldBtn');
   const exportTarget = document.getElementById('exportTarget');
   const columnA = document.getElementById('columnA');
@@ -346,6 +350,8 @@
     }
   });
 
+  const imageSlotApis = new Map();
+
   document.querySelectorAll('.image-slot').forEach(slot => {
     const img = slot.querySelector('img');
     const input = slot.querySelector('.image-input');
@@ -475,13 +481,19 @@
     input.addEventListener('change', () => {
       const file = input.files && input.files[0];
       if (!file) return;
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        slot.classList.add('has-image');
-        fitImage();
-        autoSourceColor();
+
+      // 데이터 파일 안에 이미지까지 함께 저장할 수 있도록
+      // blob URL이 아니라 data URL로 읽는다.
+      const reader = new FileReader();
+      reader.onload = () => {
+        img.onload = () => {
+          slot.classList.add('has-image');
+          fitImage();
+          autoSourceColor();
+        };
+        img.src = String(reader.result || '');
       };
-      img.src = url;
+      reader.readAsDataURL(file);
     });
 
     slot.addEventListener('wheel', e => {
@@ -520,5 +532,291 @@
       state.dragging = false;
       slot.classList.remove('is-dragging');
     });
+
+    imageSlotApis.set(slot.dataset.slot, {
+      serialize() {
+        return {
+          src: slot.classList.contains('has-image') && img.src ? img.src : null,
+          scale: state.scale,
+          x: state.x,
+          y: state.y,
+          sourceHtml: source.innerHTML,
+          sourceMode: state.sourceMode
+        };
+      },
+
+      restore(data) {
+        return new Promise(resolve => {
+          const saved = data || {};
+
+          source.innerHTML = typeof saved.sourceHtml === 'string'
+            ? saved.sourceHtml
+            : '@출처';
+
+          const finishWithoutImage = () => {
+            img.removeAttribute('src');
+            slot.classList.remove('has-image');
+            state.scale = 1;
+            state.x = 0;
+            state.y = 0;
+            state.naturalFit = 1;
+            state.minScale = 0.1;
+            setSourceMode(saved.sourceMode || 'auto');
+            resolve();
+          };
+
+          if (!saved.src) {
+            finishWithoutImage();
+            return;
+          }
+
+          img.onload = () => {
+            slot.classList.add('has-image');
+
+            const sw = slot.clientWidth;
+            const sh = slot.clientHeight;
+            const fit = Math.min(sw / img.naturalWidth, sh / img.naturalHeight);
+
+            state.naturalFit = fit;
+            state.minScale = Math.max(0.05, fit * 0.35);
+            state.scale = Number.isFinite(Number(saved.scale))
+              ? Number(saved.scale)
+              : fit;
+            state.x = Number.isFinite(Number(saved.x)) ? Number(saved.x) : 0;
+            state.y = Number.isFinite(Number(saved.y)) ? Number(saved.y) : 0;
+
+            applyTransform();
+            setSourceMode(saved.sourceMode || 'auto');
+            resolve();
+          };
+
+          img.onerror = () => {
+            finishWithoutImage();
+          };
+
+          img.src = saved.src;
+        });
+      }
+    });
+  });
+
+  // ─────────────────────────────────────────
+  // 데이터 파일 저장 / 불러오기
+  // ─────────────────────────────────────────
+
+  const dataFieldSelectors = {
+    world: '#worldCard .world-content',
+
+    aName: '#columnA .name',
+    aCatchphrase: '#columnA .catchphrase',
+    aTags: '#columnA .tag-row',
+    aBio: '#columnA .bio',
+    aLevel: '#columnA .level-card .editable',
+
+    relationSummary: '.relation-summary .summary-copy',
+    relationKeywordBox: '.relation-summary .summary-box',
+    relationAToB: '.relation-details .relation-a .editable',
+    relationBToA: '.relation-details .relation-b .editable',
+    ng: '.ng-card .editable',
+
+    bName: '#columnB .name',
+    bCatchphrase: '#columnB .catchphrase',
+    bTags: '#columnB .tag-row',
+    bBio: '#columnB .bio',
+    bLevel: '#columnB .level-card .editable',
+
+    aPersonality: '.details-column[data-theme-side="a"] .detail-card:nth-child(1) .editable',
+    aAppearance: '.details-column[data-theme-side="a"] .detail-card:nth-child(2) .editable',
+    aSpeechTitle: '.details-column[data-theme-side="a"] .detail-card:nth-child(3) .heading-editable',
+    aSpeechBody: '.details-column[data-theme-side="a"] .detail-card:nth-child(3) .editable',
+    aCall: '.details-column[data-theme-side="a"] .detail-card:nth-child(3) .like-row span[contenteditable="true"]',
+
+    bPersonality: '.details-column[data-theme-side="b"] .detail-card:nth-child(1) .editable',
+    bAppearance: '.details-column[data-theme-side="b"] .detail-card:nth-child(2) .editable',
+    bSpeechTitle: '.details-column[data-theme-side="b"] .detail-card:nth-child(3) .heading-editable',
+    bSpeechBody: '.details-column[data-theme-side="b"] .detail-card:nth-child(3) .editable',
+    bCall: '.details-column[data-theme-side="b"] .detail-card:nth-child(3) .like-row span[contenteditable="true"]'
+  };
+
+  function setDataStatus(message) {
+    dataStatus.textContent = message;
+    window.clearTimeout(setDataStatus.timer);
+    setDataStatus.timer = window.setTimeout(() => {
+      dataStatus.textContent = '';
+    }, 2500);
+  }
+
+  function collectTextFields() {
+    const fields = {};
+
+    Object.entries(dataFieldSelectors).forEach(([key, selector]) => {
+      const el = document.querySelector(selector);
+      if (el) fields[key] = el.innerHTML;
+    });
+
+    return fields;
+  }
+
+  function restoreTextFields(fields) {
+    if (!fields || typeof fields !== 'object') return;
+
+    Object.entries(dataFieldSelectors).forEach(([key, selector]) => {
+      if (!(key in fields)) return;
+      const el = document.querySelector(selector);
+      if (el) el.innerHTML = fields[key];
+    });
+  }
+
+  function collectImageData() {
+    const images = {};
+    imageSlotApis.forEach((api, key) => {
+      images[key] = api.serialize();
+    });
+    return images;
+  }
+
+  async function restoreImageData(images) {
+    if (!images || typeof images !== 'object') return;
+
+    const jobs = [];
+    imageSlotApis.forEach((api, key) => {
+      jobs.push(api.restore(images[key] || null));
+    });
+    await Promise.all(jobs);
+  }
+
+  function buildDataFile() {
+    return {
+      format: 'pair-profile-template',
+      version: 22,
+      savedAt: new Date().toISOString(),
+
+      settings: {
+        colorA: colorA.value,
+        colorB: colorB.value,
+        levelA: toggleLevelA.checked,
+        levelB: toggleLevelB.checked,
+        world: toggleWorld.checked
+      },
+
+      fields: collectTextFields(),
+
+      inputs: {
+        aMeta: document.querySelector('#columnA .meta-inline')?.value || '',
+        bMeta: document.querySelector('#columnB .meta-inline')?.value || ''
+      },
+
+      images: collectImageData()
+    };
+  }
+
+  function downloadDataFile(data) {
+    const blob = new Blob(
+      [JSON.stringify(data, null, 2)],
+      { type: 'application/json;charset=utf-8' }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'pair-profile-data.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function restoreDataFile(data) {
+    if (!data || data.format !== 'pair-profile-template') {
+      throw new Error('이 페어틀의 데이터 파일이 아닙니다.');
+    }
+
+    const settings = data.settings || {};
+
+    if (typeof settings.colorA === 'string') {
+      colorA.value = settings.colorA;
+      setTheme('a', settings.colorA);
+    }
+
+    if (typeof settings.colorB === 'string') {
+      colorB.value = settings.colorB;
+      setTheme('b', settings.colorB);
+    }
+
+    if (typeof settings.levelA === 'boolean') {
+      toggleLevelA.checked = settings.levelA;
+      applyLevelState(columnA, settings.levelA);
+    }
+
+    if (typeof settings.levelB === 'boolean') {
+      toggleLevelB.checked = settings.levelB;
+      applyLevelState(columnB, settings.levelB);
+    }
+
+    if (typeof settings.world === 'boolean') {
+      toggleWorld.checked = settings.world;
+      worldCard.classList.toggle('is-off', !settings.world);
+    }
+
+    restoreTextFields(data.fields);
+
+    const aMeta = document.querySelector('#columnA .meta-inline');
+    const bMeta = document.querySelector('#columnB .meta-inline');
+
+    if (aMeta && typeof data.inputs?.aMeta === 'string') {
+      aMeta.value = data.inputs.aMeta;
+      normalizeMetaInput(aMeta);
+    }
+
+    if (bMeta && typeof data.inputs?.bMeta === 'string') {
+      bMeta.value = data.inputs.bMeta;
+      normalizeMetaInput(bMeta);
+    }
+
+    await restoreImageData(data.images);
+
+    requestAnimationFrame(() => {
+      fitAllNames();
+    });
+  }
+
+  saveDataBtn.addEventListener('click', () => {
+    try {
+      downloadDataFile(buildDataFile());
+      setDataStatus('저장됨');
+    } catch (err) {
+      console.error(err);
+      alert('데이터 저장 중 오류가 발생했습니다.');
+    }
+  });
+
+  loadDataBtn.addEventListener('click', () => {
+    loadDataInput.value = '';
+    loadDataInput.click();
+  });
+
+  loadDataInput.addEventListener('change', async () => {
+    const file = loadDataInput.files && loadDataInput.files[0];
+    if (!file) return;
+
+    loadDataBtn.disabled = true;
+    saveDataBtn.disabled = true;
+    setDataStatus('불러오는 중...');
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      await restoreDataFile(data);
+      setDataStatus('불러옴');
+    } catch (err) {
+      console.error(err);
+      alert(err?.message || '데이터 파일을 불러오지 못했습니다.');
+      setDataStatus('');
+    } finally {
+      loadDataBtn.disabled = false;
+      saveDataBtn.disabled = false;
+      loadDataInput.value = '';
+    }
   });
 })();

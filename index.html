@@ -36,6 +36,13 @@
       <button id="exportPngBtn" type="button">PNG 저장</button>
     </div>
 
+    <div class="editor-group data-file-group">
+      <button id="saveDataBtn" type="button">데이터 저장</button>
+      <button id="loadDataBtn" type="button">데이터 불러오기</button>
+      <input id="loadDataInput" type="file" accept=".json,application/json" hidden>
+      <span id="dataStatus" class="data-status" aria-live="polite"></span>
+    </div>
+
     <button id="toggleEditor" class="subtle" type="button">편집바 접기</button>
   </header>
 
@@ -292,7 +299,7 @@
           </div>
         </section>
         <section class="detail-card themed-card">
-          <h3>말투 · 대화 방식</h3>
+          <h3 class="editable-heading"><span class="heading-fixed">말투 :</span> <span class="heading-editable" contenteditable="true" spellcheck="false">대화 방식</span></h3>
           <div class="editable" contenteditable="true" spellcheck="false">
             말투의 높낮이, 존댓말 여부, 자주 쓰는 표현 등을 적어주세요.<br><br>
             짧은 예문을 여러 줄로 추가해도 됩니다.<br>
@@ -322,7 +329,7 @@
           </div>
         </section>
         <section class="detail-card themed-card">
-          <h3>말투 · 상냥한 존댓말</h3>
+          <h3 class="editable-heading"><span class="heading-fixed">말투 :</span> <span class="heading-editable" contenteditable="true" spellcheck="false">대화 방식</span></h3>
           <div class="editable" contenteditable="true" spellcheck="false">
             말투의 높낮이, 존댓말 여부, 자주 쓰는 표현 등을 적어주세요.<br><br>
             짧은 예문을 여러 줄로 추가해도 됩니다.<br>
