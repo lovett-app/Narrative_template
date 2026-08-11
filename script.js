@@ -7,6 +7,10 @@
   const editorBar = document.querySelector('.editor-bar');
   const toggleLevelA = document.getElementById('toggleLevelA');
   const toggleLevelB = document.getElementById('toggleLevelB');
+  const toggleBubbleA = document.getElementById('toggleBubbleA');
+  const toggleBubbleB = document.getElementById('toggleBubbleB');
+  const bubbleA = document.getElementById('bubbleA');
+  const bubbleB = document.getElementById('bubbleB');
   const toggleWorld = document.getElementById('toggleWorld');
   const worldCard = document.getElementById('worldCard');
   const exportPngBtn = document.getElementById('exportPngBtn');
@@ -63,12 +67,22 @@
 
   toggleLevelA.addEventListener('change', e => applyLevelState(columnA, e.target.checked));
   toggleLevelB.addEventListener('change', e => applyLevelState(columnB, e.target.checked));
+
+  function applyBubbleState(bubble, isOn) {
+    bubble.classList.toggle('is-off', !isOn);
+  }
+
+  toggleBubbleA.addEventListener('change', e => applyBubbleState(bubbleA, e.target.checked));
+  toggleBubbleB.addEventListener('change', e => applyBubbleState(bubbleB, e.target.checked));
+
   toggleWorld.addEventListener('change', e => {
     worldCard.classList.toggle('is-off', !e.target.checked);
   });
 
   applyLevelState(columnA, true);
   applyLevelState(columnB, true);
+  applyBubbleState(bubbleA, toggleBubbleA.checked);
+  applyBubbleState(bubbleB, toggleBubbleB.checked);
   worldCard.classList.toggle('is-off', !toggleWorld.checked);
 
   boldBtn.addEventListener('click', () => {
@@ -193,7 +207,7 @@
 
   toggleEditor.addEventListener('click', () => {
     const collapsed = editorBar.classList.toggle('is-collapsed');
-    toggleEditor.textContent = collapsed ? '편집바 펼치기' : '편집바 접기';
+    toggleEditor.textContent = collapsed ? '펼치기' : '접기';
   });
 
 
@@ -609,6 +623,7 @@
 
     aName: '#columnA .name',
     aCatchphrase: '#columnA .catchphrase',
+    aBubble: '#bubbleA .speech-text',
     aTags: '#columnA .tag-row',
     aBio: '#columnA .bio',
     aLevel: '#columnA .level-card .editable',
@@ -621,6 +636,7 @@
 
     bName: '#columnB .name',
     bCatchphrase: '#columnB .catchphrase',
+    bBubble: '#bubbleB .speech-text',
     bTags: '#columnB .tag-row',
     bBio: '#columnB .bio',
     bLevel: '#columnB .level-card .editable',
@@ -696,6 +712,8 @@
         colorB: colorB.value,
         levelA: toggleLevelA.checked,
         levelB: toggleLevelB.checked,
+        bubbleA: toggleBubbleA.checked,
+        bubbleB: toggleBubbleB.checked,
         world: toggleWorld.checked
       },
 
@@ -752,6 +770,16 @@
     if (typeof settings.levelB === 'boolean') {
       toggleLevelB.checked = settings.levelB;
       applyLevelState(columnB, settings.levelB);
+    }
+
+    if (typeof settings.bubbleA === 'boolean') {
+      toggleBubbleA.checked = settings.bubbleA;
+      applyBubbleState(bubbleA, settings.bubbleA);
+    }
+
+    if (typeof settings.bubbleB === 'boolean') {
+      toggleBubbleB.checked = settings.bubbleB;
+      applyBubbleState(bubbleB, settings.bubbleB);
     }
 
     if (typeof settings.world === 'boolean') {

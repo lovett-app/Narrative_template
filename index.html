@@ -9,41 +9,69 @@
 </head>
 <body>
   <header class="editor-bar no-export">
-    <div class="editor-group">
-      <strong>페어 색상</strong>
-      <label>A <input id="colorA" type="color" value="#e31414"></label>
-      <label>B <input id="colorB" type="color" value="#3978d4"></label>
+    <div class="toolbar-scroll">
+      <section class="tool-cluster theme-tools">
+        <span class="tool-title">테마</span>
+        <label class="color-tool color-a" title="A 색상">
+          <span>A</span>
+          <input id="colorA" type="color" value="#e31414" aria-label="A 테마 색상">
+        </label>
+        <label class="color-tool color-b" title="B 색상">
+          <span>B</span>
+          <input id="colorB" type="color" value="#3978d4" aria-label="B 테마 색상">
+        </label>
+      </section>
+
+      <section class="tool-cluster display-tools">
+        <span class="tool-title">표시</span>
+
+        <label class="toggle-chip">
+          <input id="toggleWorld" type="checkbox" checked>
+          <span>세계관</span>
+        </label>
+
+        <div class="paired-toggle">
+          <span class="paired-label">수위</span>
+          <label class="toggle-chip side-a">
+            <input id="toggleLevelA" type="checkbox" checked>
+            <span>A</span>
+          </label>
+          <label class="toggle-chip side-b">
+            <input id="toggleLevelB" type="checkbox" checked>
+            <span>B</span>
+          </label>
+        </div>
+
+        <div class="paired-toggle">
+          <span class="paired-label">말풍선</span>
+          <label class="toggle-chip side-a">
+            <input id="toggleBubbleA" type="checkbox" checked>
+            <span>A</span>
+          </label>
+          <label class="toggle-chip side-b">
+            <input id="toggleBubbleB" type="checkbox" checked>
+            <span>B</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="tool-cluster text-tools">
+        <span class="tool-title">텍스트</span>
+        <button id="boldBtn" class="toolbar-button square-button" type="button" title="선택한 텍스트 굵게">B</button>
+        <span class="tool-help">드래그 후 B</span>
+      </section>
+
+      <section class="tool-cluster file-tools">
+        <span class="tool-title">저장</span>
+        <button id="exportPngBtn" class="toolbar-button primary-action" type="button">PNG 저장</button>
+        <button id="saveDataBtn" class="toolbar-button" type="button">데이터 저장</button>
+        <button id="loadDataBtn" class="toolbar-button" type="button">불러오기</button>
+        <input id="loadDataInput" type="file" accept=".json,application/json" hidden>
+        <span id="dataStatus" class="data-status" aria-live="polite"></span>
+      </section>
     </div>
 
-    <div class="editor-group">
-      <strong>수위 설정 표시</strong>
-      <label><input id="toggleLevelA" type="checkbox" checked> A</label>
-      <label><input id="toggleLevelB" type="checkbox" checked> B</label>
-    </div>
-
-    <div class="editor-group">
-      <strong>세계관 표시</strong>
-      <label><input id="toggleWorld" type="checkbox" checked> ON</label>
-    </div>
-
-    <div class="editor-group">
-      <strong>선택 텍스트</strong>
-      <button id="boldBtn" type="button">B</button>
-      <span class="hint">텍스트 선택 후 B 또는 Ctrl+B</span>
-    </div>
-
-    <div class="editor-group">
-      <button id="exportPngBtn" type="button">PNG 저장</button>
-    </div>
-
-    <div class="editor-group data-file-group">
-      <button id="saveDataBtn" type="button">데이터 저장</button>
-      <button id="loadDataBtn" type="button">데이터 불러오기</button>
-      <input id="loadDataInput" type="file" accept=".json,application/json" hidden>
-      <span id="dataStatus" class="data-status" aria-live="polite"></span>
-    </div>
-
-    <button id="toggleEditor" class="subtle" type="button">편집바 접기</button>
+    <button id="toggleEditor" class="toolbar-collapse" type="button">접기</button>
   </header>
 
   <div class="export-frame" id="exportTarget">
@@ -63,6 +91,12 @@
 
             <div class="image-slot main-image" data-slot="a-main">
               <img alt="" draggable="false">
+
+              <div class="speech-bubble" id="bubbleA">
+                <div class="speech-text" contenteditable="true" spellcheck="false">대사 입력</div>
+                <span class="speech-tail" aria-hidden="true"></span>
+              </div>
+
               <div class="image-placeholder">A 이미지</div>
               <input class="image-input" type="file" accept="image/*" hidden>
               <div class="image-tools no-export">
@@ -171,6 +205,12 @@
 
             <div class="image-slot main-image" data-slot="b-main">
               <img alt="" draggable="false">
+
+              <div class="speech-bubble" id="bubbleB">
+                <div class="speech-text" contenteditable="true" spellcheck="false">대사 입력</div>
+                <span class="speech-tail" aria-hidden="true"></span>
+              </div>
+
               <div class="image-placeholder">B 이미지</div>
               <input class="image-input" type="file" accept="image/*" hidden>
               <div class="image-tools no-export">

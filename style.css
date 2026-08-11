@@ -815,3 +815,503 @@ input:focus {
     display: none;
   }
 }
+
+
+/* =========================================================
+   A/B 말풍선
+   - 사용자가 준 배치 기준으로 이미지 상단에 낮고 넓게 배치
+   - 꼬리는 마름모가 아니라 얇은 삼각형 아웃라인 형태
+   ========================================================= */
+.speech-bubble {
+  position: absolute;
+  z-index: 4;
+  top: 2px;
+  left: 50%;
+  width: 74%;
+  min-height: 58px;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border: 3px solid var(--theme);
+  border-radius: 15px;
+  background: #fff;
+  color: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: auto;
+  overflow: visible;
+}
+
+.speech-bubble.is-off {
+  display: none;
+}
+
+.speech-text {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  min-height: 1.4em;
+  outline: none;
+  user-select: text;
+  cursor: text;
+  line-height: 1.35;
+}
+
+.speech-text:focus {
+  box-shadow: inset 0 -2px 0 rgba(var(--theme-rgb), .22);
+}
+
+/* 바깥 테마색 삼각형 */
+.speech-tail {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: -14px;
+  width: 25px;
+  height: 25px;
+  transform: translateX(-50%) rotate(45deg);
+  transform-origin: center;
+  background: #fff;
+  border: 0;
+  border-right: 3px solid var(--theme);
+  border-bottom: 3px solid var(--theme);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+/* 말풍선 하단 테두리 중앙을 흰색으로 덮어서
+   꼬리의 두 대각선이 박스와 끊기지 않고 바로 이어지게 한다. */
+.speech-tail::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: -8px;
+  width: 39px;
+  height: 9px;
+  background: #fff;
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+
+/* clip-path는 html2canvas에서 네모로 렌더되는 경우가 있어 사용하지 않음 */
+.speech-tail::after {
+  content: none;
+  display: none;
+}
+
+/* 이미지보다 앞, 편집 버튼보다는 뒤 */
+.image-tools {
+  z-index: 6;
+}
+
+.image-source {
+  z-index: 6;
+}
+
+/* 참고 배치처럼 A/B의 말풍선을 아주 조금 바깥쪽으로 치우침 */
+.theme-a .speech-bubble,
+.theme-b .speech-bubble {
+  left: 50%;
+}
+
+.theme-a .speech-tail,
+.theme-b .speech-tail {
+  left: 50%;
+}
+
+@media (max-width: 760px) {
+  .speech-bubble {
+    top: 2px;
+    width: 76%;
+    min-height: 54px;
+    padding: 9px 14px;
+    border-width: 3px;
+    border-radius: 14px;
+    font-size: 13px;
+  }
+
+  .theme-a .speech-bubble,
+  .theme-b .speech-bubble {
+    left: 50%;
+  }
+
+  .theme-a .speech-tail,
+  .theme-b .speech-tail {
+    left: 50%;
+  }
+
+  .speech-tail {
+    bottom: -13px;
+    width: 23px;
+    height: 23px;
+  }
+
+  .speech-tail::before {
+    left: -7px;
+    top: -7px;
+    width: 36px;
+    height: 8px;
+  }
+}
+
+
+/* =========================================================
+   상단 편집바 v26
+   기능별 그룹: 테마 / 표시 / 텍스트 / 저장
+   ========================================================= */
+.editor-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px 10px;
+  background: rgba(238, 243, 246, .94);
+  border-bottom: 1px solid #d7e0e7;
+  box-shadow: 0 5px 18px rgba(40, 55, 70, .07);
+  backdrop-filter: blur(12px);
+}
+
+.toolbar-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 1px;
+}
+
+.tool-cluster {
+  flex: 0 0 auto;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid #d8e1e8;
+  border-radius: 14px;
+  background: rgba(255,255,255,.96);
+}
+
+.tool-title {
+  margin-right: 2px;
+  color: #7a8792;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+.color-tool {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 7px 0 8px;
+  border: 1px solid #dde3e8;
+  border-radius: 999px;
+  background: #f8fafb;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.color-tool input[type="color"] {
+  width: 22px !important;
+  height: 22px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  overflow: hidden;
+  background: transparent !important;
+  cursor: pointer;
+}
+
+.color-tool input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-tool input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.color-tool input[type="color"]::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.paired-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+  padding: 3px;
+  border: 1px solid #dde3e8;
+  border-radius: 999px;
+  background: #f7f9fa;
+}
+
+.paired-label {
+  padding-left: 6px;
+  padding-right: 3px;
+  color: #5d6872;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle-chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-chip span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: #89939c;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: background .14s ease, color .14s ease, box-shadow .14s ease;
+}
+
+.toggle-chip input:checked + span {
+  color: #33404b;
+  background: #e9eef2;
+  box-shadow: inset 0 0 0 1px #d4dde4;
+}
+
+.toggle-chip.side-a input:checked + span {
+  color: var(--a);
+  background: var(--a-soft);
+  box-shadow: inset 0 0 0 1px rgba(var(--a-rgb), .22);
+}
+
+.toggle-chip.side-b input:checked + span {
+  color: var(--b);
+  background: var(--b-soft);
+  box-shadow: inset 0 0 0 1px rgba(var(--b-rgb), .22);
+}
+
+.toolbar-button,
+.editor-bar .toolbar-button {
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid #d7dee4;
+  border-radius: 9px;
+  background: #f7f9fa;
+  color: #38434c;
+  font-size: 12px;
+  font-weight: 750;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.toolbar-button:hover {
+  background: #eef2f5;
+}
+
+.toolbar-button.primary-action,
+.editor-bar .toolbar-button.primary-action {
+  border-color: #35414b;
+  background: #35414b;
+  color: #fff;
+}
+
+.square-button,
+.editor-bar .square-button {
+  width: 32px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.tool-help {
+  color: #929ba3;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.data-status {
+  min-width: 0;
+  color: #71808b;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.toolbar-collapse,
+.editor-bar .toolbar-collapse {
+  flex: 0 0 auto;
+  align-self: center;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #d7dee4;
+  border-radius: 10px;
+  background: rgba(255,255,255,.95);
+  color: #64717b;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.editor-bar.is-collapsed {
+  height: auto;
+  min-height: 0;
+  padding: 7px 10px;
+  justify-content: flex-end;
+  overflow: visible;
+}
+
+.editor-bar.is-collapsed .toolbar-scroll {
+  display: none;
+}
+
+.editor-bar.is-collapsed .toolbar-collapse {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 구형 editor-group 규칙 영향 제거 */
+.editor-bar .editor-group {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+/* 모바일: 한 줄 가로스크롤은 유지하되 각 그룹을 더 압축 */
+@media (max-width: 760px) {
+  .editor-bar {
+    gap: 6px;
+    padding: 6px;
+    overflow: visible;
+  }
+
+  .toolbar-scroll {
+    gap: 6px;
+    overflow-x: auto;
+  }
+
+  .tool-cluster {
+    min-height: 44px;
+    gap: 5px;
+    padding: 5px 7px;
+    border-radius: 12px;
+  }
+
+  .tool-title {
+    font-size: 10px;
+  }
+
+  .tool-help,
+  .data-status {
+    display: none;
+  }
+
+  .color-tool {
+    height: 30px;
+    padding: 0 6px;
+  }
+
+  .paired-toggle {
+    height: 30px;
+  }
+
+  .toggle-chip span {
+    height: 24px;
+    min-width: 28px;
+    padding: 0 8px;
+  }
+
+  .toolbar-button,
+  .editor-bar .toolbar-button {
+    height: 30px;
+    padding: 0 9px;
+  }
+
+  .toolbar-collapse,
+  .editor-bar .toolbar-collapse {
+    height: 32px;
+    padding: 0 8px;
+  }
+}
+
+
+/* =========================================================
+   이미지 편집 버튼 위치 조정
+   - 말풍선 입력 영역과 겹치지 않도록 상단 → 하단 좌측으로 이동
+   - 출처는 기존처럼 하단 우측
+   ========================================================= */
+.image-tools {
+  top: auto !important;
+  bottom: 9px !important;
+  left: 9px !important;
+  max-width: calc(100% - 95px);
+  align-items: center;
+}
+
+.image-source {
+  right: 10px;
+  bottom: 11px;
+}
+
+/* 툴이 길어져도 출처 영역까지 침범하지 않도록 조금 더 조밀하게 */
+.image-tools button {
+  padding: 4px 6px;
+}
+
+.source-color-tools {
+  padding: 2px 4px;
+}
+
+/* 모바일에서도 말풍선 위를 가리지 않게 하단 고정 */
+@media (max-width: 760px) {
+  .image-tools {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    max-width: calc(100% - 82px);
+  }
+
+  .image-source {
+    right: 8px;
+    bottom: 10px;
+  }
+}
+
+
+/* =========================================================
+   v32 미세 정렬
+   ========================================================= */
+
+/* 말풍선 대사는 말풍선/꼬리보다 확실히 앞 레이어 */
+.speech-text {
+  position: relative;
+  z-index: 10;
+  transform: translateX(4px);
+}
+
+/* 세계관 본문도 아주 미세하게 오른쪽으로 */
+#worldCard .world-content {
+  position: relative;
+  left: 4px;
+}
