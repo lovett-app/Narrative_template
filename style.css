@@ -1315,3 +1315,210 @@ input:focus {
   position: relative;
   left: 4px;
 }
+
+
+/* =========================================================
+   v33
+   ========================================================= */
+
+/* 굵게 해제된 텍스트가 부모 strong/b의 테마색을 상속하지 않도록 */
+[contenteditable="true"] span[style*="font-weight: normal"],
+[contenteditable="true"] span[style*="font-weight: 400"] {
+  color: var(--ink) !important;
+}
+
+/* 카드에 아주 미세한 아웃글로우 복구 */
+.world-card,
+.profile-card,
+.ranking-card,
+.relation-summary,
+.relation-details,
+.ng-card,
+.pair-image,
+.detail-card {
+  box-shadow:
+    0 1px 3px rgba(70, 88, 104, .05),
+    0 0 9px rgba(90, 112, 132, .08);
+}
+
+/* 수위 설정 OFF:
+   두상 이미지 크기는 그대로 두고, 빠진 수위 카드만큼 설명 영역을 아래로 확장 */
+.character-column.level-off .main-image {
+  height: 408px;
+}
+
+.character-column.level-off .bio {
+  padding-bottom: 125px;
+}
+
+@media (max-width: 760px) {
+  .character-column.level-off .main-image {
+    height: min(112vw, 470px);
+  }
+
+  .character-column.level-off .bio {
+    padding-bottom: 110px;
+  }
+}
+
+
+/* =========================================================
+   v34
+   ========================================================= */
+
+/* 해시태그 편집 */
+.tag-row {
+  align-items: center;
+}
+
+.tag-row > span {
+  position: relative;
+  outline: none;
+}
+
+.tag-delete {
+  position: absolute;
+  right: -9px;
+  top: -7px;
+  z-index: 4;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.96);
+  color: #666;
+  box-shadow: 0 1px 4px rgba(0,0,0,.16);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+
+  /* 태그 실제 폭에는 전혀 영향 없음 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+}
+
+.tag-row > span:hover .tag-delete,
+.tag-row > span:focus-within .tag-delete {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tag-editor-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tag-editor-line .tag-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tag-add {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin-top: 10px;
+  border: 1px solid #ccd5dc;
+  border-radius: 50%;
+  background: #fff;
+  color: #687783;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 21px;
+  text-align: center;
+}
+
+.tag-add:hover {
+  background: #f5f7f8;
+}
+
+/* · 항목 편집 */
+.bullet-editor {
+  display: block;
+}
+
+.bullet-line,
+.bullet-subline {
+  min-height: 1.45em;
+}
+
+.bullet-line + .bullet-line {
+  margin-top: 3px;
+}
+
+.bullet-subline {
+  margin-top: -1px;
+  padding-left: 1.15em;
+  line-height: 1.25;
+}
+
+.bullet-subline + .bullet-line {
+  margin-top: 5px;
+}
+
+/* 이미지 잠금 */
+.image-lock-btn.is-locked {
+  background: #313b44 !important;
+  color: #fff !important;
+}
+
+.image-slot.image-locked img {
+  cursor: default !important;
+}
+
+.image-slot.image-locked [data-action="zoom-in"],
+.image-slot.image-locked [data-action="zoom-out"],
+.image-slot.image-locked [data-action="reset"] {
+  opacity: .4;
+}
+
+/* 자동 출처색 제거 후 W/G/K만 사용 */
+.source-color-tools {
+  gap: 4px;
+}
+
+
+/* =========================================================
+   v37
+   ========================================================= */
+
+/* 잠금 버튼: 텍스트 대신 작은 자물쇠 아이콘 */
+.image-lock-btn {
+  width: 27px;
+  height: 27px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 태그 삭제 X는 태그 폭과 무관하게 바깥에 겹쳐 표시.
+   태그 자체 좌우 여백은 원래 값 그대로 유지한다. */
+
+
+/* =========================================================
+   v38 태그 여백 복구
+   ========================================================= */
+.tag-row > span {
+  padding: 5px 14px !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+  .tag-row > span {
+    padding: 5px 11px !important;
+  }
+}
+
+/* X는 absolute라 태그 폭을 차지하지 않음 */
+.tag-delete {
+  right: -7px;
+  top: -7px;
+}

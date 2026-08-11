@@ -85,8 +85,42 @@
   applyBubbleState(bubbleB, toggleBubbleB.checked);
   worldCard.classList.toggle('is-off', !toggleWorld.checked);
 
-  boldBtn.addEventListener('click', () => {
+  function normalizeUnboldedText(rootEl) {
+    if (!rootEl) return;
+
+    // 브라우저가 기존 <strong>/<b> 안의 일부를 굵게 해제할 때
+    // <span style="font-weight: normal"> 형태를 만들 수 있다.
+    // 이 경우 부모의 테마색을 상속하지 않도록 검정으로 명시한다.
+    rootEl.querySelectorAll('span[style]').forEach(span => {
+      const weight = String(span.style.fontWeight || '').trim().toLowerCase();
+
+      if (weight === 'normal' || weight === '400') {
+        span.style.color = 'var(--ink)';
+      } else if (span.style.color) {
+        span.style.removeProperty('color');
+      }
+    });
+  }
+
+  function toggleBoldAtSelection() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const node = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentElement
+      : range.commonAncestorContainer;
+    const editable = node?.closest?.('[contenteditable="true"]');
+
     document.execCommand('bold', false, null);
+
+    if (editable) {
+      requestAnimationFrame(() => normalizeUnboldedText(editable));
+    }
+  }
+
+  boldBtn.addEventListener('click', () => {
+    toggleBoldAtSelection();
   });
 
   let savedTextRange = null;
@@ -180,7 +214,7 @@
     selection.removeAllRanges();
     selection.addRange(savedTextRange);
 
-    document.execCommand('bold', false, null);
+    toggleBoldAtSelection();
 
     selection.removeAllRanges();
     hideSelectionBoldButton();
@@ -200,7 +234,7 @@
       const active = document.activeElement;
       if (active && active.isContentEditable) {
         e.preventDefault();
-        document.execCommand('bold', false, null);
+        toggleBoldAtSelection();
       }
     }
   });
@@ -212,35 +246,66 @@
 
 
   // 이름은 항상 한 줄 유지. 길어지면 해당 칸 안에 들어올 때까지 글자 크기를 자동 축소.
-  function fitName(nameEl) {
+  const nameEls = [...document.querySelectorAll('.name')];
+
+  // A/B 이름은 둘 중 긴 이름을 기준으로 같은 글자 크기를 사용한다.
+  // 둘 다 한 줄에 들어가는 한 가장 큰 공통 크기를 유지한다.
+  function fitAllNames() {
     const isMobile = window.matchMedia('(max-width: 760px)').matches;
-    const maxSize = isMobile ? 44 : 54;
+    const maxSize = isMobile ? 40 : 54;
     const minSize = 20;
 
-    nameEl.style.fontSize = `${maxSize}px`;
-
     let size = maxSize;
-    while (nameEl.scrollWidth > nameEl.clientWidth && size > minSize) {
-      size -= 1;
+
+    nameEls.forEach(nameEl => {
       nameEl.style.fontSize = `${size}px`;
+      nameEl.style.whiteSpace = 'nowrap';
+    });
+
+    while (
+      nameEls.some(nameEl => nameEl.scrollWidth > nameEl.clientWidth) &&
+      size > minSize
+    ) {
+      size -= 1;
+      nameEls.forEach(nameEl => {
+        nameEl.style.fontSize = `${size}px`;
+      });
     }
   }
 
-  const nameEls = [...document.querySelectorAll('.name')];
-
-  function fitAllNames() {
-    nameEls.forEach(fitName);
-  }
-
   nameEls.forEach(nameEl => {
-    nameEl.addEventListener('input', () => fitName(nameEl));
-    nameEl.addEventListener('blur', () => fitName(nameEl));
+    nameEl.addEventListener('input', fitAllNames);
+    nameEl.addEventListener('blur', fitAllNames);
   });
 
   const nameResizeObserver = new ResizeObserver(() => fitAllNames());
   nameEls.forEach(nameEl => nameResizeObserver.observe(nameEl));
   window.addEventListener('resize', fitAllNames);
   requestAnimationFrame(fitAllNames);
+
+  // 일반 붙여넣기도 Ctrl+Shift+V처럼 처리:
+  // 외부 HTML/폰트/색/크기를 가져오지 않고 현재 페어틀 서식만 사용한다.
+  document.addEventListener('paste', e => {
+    const editable = e.target.closest?.('[contenteditable="true"]');
+    if (!editable) return;
+
+    e.preventDefault();
+
+    const plain = (e.clipboardData || window.clipboardData)
+      ?.getData('text/plain') ?? '';
+
+    const escaped = plain
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\r\n|\r|\n/g, '<br>');
+
+    document.execCommand('insertHTML', false, escaped);
+
+    if (editable.classList.contains('name')) {
+      requestAnimationFrame(fitAllNames);
+    }
+  });
 
   document.querySelectorAll('.meta-inline').forEach(input => {
     normalizeMetaInput(input);
@@ -326,18 +391,24 @@
 
           // 모바일에서 자동축소되어 inline font-size가 남은 이름을
           // 데스크톱 폭 기준으로 다시 계산
-          clonedDocument.querySelectorAll('.name').forEach(nameEl => {
-            let size = 54;
-            const minSize = 20;
+          const clonedNames = [...clonedDocument.querySelectorAll('.name')];
+          let clonedNameSize = 54;
+          const clonedNameMinSize = 20;
 
-            nameEl.style.fontSize = `${size}px`;
+          clonedNames.forEach(nameEl => {
+            nameEl.style.fontSize = `${clonedNameSize}px`;
             nameEl.style.whiteSpace = 'nowrap';
-
-            while (nameEl.scrollWidth > nameEl.clientWidth && size > minSize) {
-              size -= 1;
-              nameEl.style.fontSize = `${size}px`;
-            }
           });
+
+          while (
+            clonedNames.some(nameEl => nameEl.scrollWidth > nameEl.clientWidth) &&
+            clonedNameSize > clonedNameMinSize
+          ) {
+            clonedNameSize -= 1;
+            clonedNames.forEach(nameEl => {
+              nameEl.style.fontSize = `${clonedNameSize}px`;
+            });
+          }
 
           // 편집 포커스/선택 표시가 PNG에 남지 않게 처리
           clonedDocument.querySelectorAll('[contenteditable="true"]').forEach(el => {
@@ -364,6 +435,122 @@
     }
   });
 
+
+  // ─────────────────────────────────────────
+  // 해시태그 추가 / 삭제
+  // ─────────────────────────────────────────
+  function focusTagText(chip, selectAll = false) {
+    const textNode = [...chip.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
+    if (!textNode) return;
+
+    chip.focus();
+
+    const range = document.createRange();
+    if (selectAll) {
+      range.selectNodeContents(textNode);
+    } else {
+      range.setStart(textNode, textNode.textContent.length);
+      range.collapse(true);
+    }
+
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  function createTagChip(row, text = '#새태그', selectAll = true) {
+    if (!row) return null;
+
+    const chip = document.createElement('span');
+    chip.textContent = text.startsWith('#') ? text : `#${text}`;
+    row.appendChild(chip);
+    decorateTagRow(row);
+
+    requestAnimationFrame(() => focusTagText(chip, selectAll));
+    return chip;
+  }
+
+  function decorateTagRow(row) {
+    if (!row) return;
+
+    [...row.children].forEach(chip => {
+      if (chip.classList.contains('tag-chip-ready')) return;
+
+      chip.classList.add('tag-chip-ready');
+      chip.setAttribute('contenteditable', 'true');
+      chip.setAttribute('spellcheck', 'false');
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'tag-delete no-export';
+      del.textContent = '×';
+      del.setAttribute('contenteditable', 'false');
+      del.setAttribute('aria-label', '태그 삭제');
+
+      del.addEventListener('mousedown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+
+      del.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        chip.remove();
+      });
+
+      // 쉼표 입력 = 현재 태그 확정 + 바로 다음 태그 생성
+      chip.addEventListener('keydown', e => {
+        if (e.key !== ',' || e.ctrlKey || e.metaKey || e.altKey) return;
+
+        e.preventDefault();
+
+        const textNode = [...chip.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
+        if (textNode) {
+          textNode.textContent = textNode.textContent.replace(/,+$/g, '').trim();
+          if (textNode.textContent && !textNode.textContent.startsWith('#')) {
+            textNode.textContent = `#${textNode.textContent}`;
+          }
+        }
+
+        createTagChip(row, '#새태그', true);
+      });
+
+      chip.appendChild(del);
+    });
+  }
+
+  function cleanTagHtml(row) {
+    const clone = row.cloneNode(true);
+    clone.querySelectorAll('.tag-delete').forEach(btn => btn.remove());
+    clone.querySelectorAll('[contenteditable]').forEach(el => {
+      el.removeAttribute('contenteditable');
+      el.removeAttribute('spellcheck');
+    });
+    clone.querySelectorAll('.tag-chip-ready').forEach(el => {
+      el.classList.remove('tag-chip-ready');
+    });
+    return clone.innerHTML;
+  }
+
+  function restoreTagHtml(row, html) {
+    if (!row) return;
+    row.innerHTML = html || '';
+    decorateTagRow(row);
+  }
+
+  const tagRowA = document.querySelector('#columnA .tag-row');
+  const tagRowB = document.querySelector('#columnB .tag-row');
+
+  decorateTagRow(tagRowA);
+  decorateTagRow(tagRowB);
+
+  document.querySelectorAll('[data-tag-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.dataset.tagAdd === 'a' ? tagRowA : tagRowB;
+      createTagChip(row, '#새태그', true);
+    });
+  });
+
   const imageSlotApis = new Map();
 
   document.querySelectorAll('.image-slot').forEach(slot => {
@@ -380,8 +567,35 @@
       dragging: false,
       startX: 0,
       startY: 0,
-      sourceMode: 'auto'
+      sourceMode: 'white',
+      locked: false
     };
+
+    const sourceColorTools = slot.querySelector('.source-color-tools');
+    const lockBtn = document.createElement('button');
+    lockBtn.type = 'button';
+    lockBtn.dataset.action = 'lock';
+    lockBtn.className = 'image-lock-btn';
+    lockBtn.textContent = '🔒';
+    lockBtn.title = '이미지 잠금/해제';
+
+    if (sourceColorTools) {
+      sourceColorTools.before(lockBtn);
+    } else {
+      slot.querySelector('.image-tools')?.appendChild(lockBtn);
+    }
+
+    function updateLockUi() {
+      slot.classList.toggle('image-locked', state.locked);
+      lockBtn.textContent = state.locked ? '🔓' : '🔒';
+      lockBtn.classList.toggle('is-locked', state.locked);
+    }
+
+    lockBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      state.locked = !state.locked;
+      updateLockUi();
+    });
 
     function applyTransform() {
       img.style.transform =
@@ -447,8 +661,8 @@
     }
 
     function setSourceMode(mode) {
+      if (mode === 'auto') mode = 'white'; // 구버전 데이터 호환
       state.sourceMode = mode;
-      if (mode === 'auto') return autoSourceColor();
 
       const map = {
         white: '#ffffff',
@@ -476,20 +690,22 @@
 
     slot.querySelector('[data-action="zoom-in"]').addEventListener('click', e => {
       e.stopPropagation();
+      if (state.locked) return;
       state.scale *= 1.12;
       applyTransform();
     });
 
     slot.querySelector('[data-action="zoom-out"]').addEventListener('click', e => {
       e.stopPropagation();
+      if (state.locked) return;
       state.scale = Math.max(state.minScale, state.scale / 1.12);
       applyTransform();
     });
 
     slot.querySelector('[data-action="reset"]').addEventListener('click', e => {
       e.stopPropagation();
+      if (state.locked) return;
       fitImage();
-      autoSourceColor();
     });
 
     input.addEventListener('change', () => {
@@ -503,7 +719,7 @@
         img.onload = () => {
           slot.classList.add('has-image');
           fitImage();
-          autoSourceColor();
+          setSourceMode(state.sourceMode);
         };
         img.src = String(reader.result || '');
       };
@@ -512,6 +728,7 @@
 
     slot.addEventListener('wheel', e => {
       if (!slot.classList.contains('has-image')) return;
+      if (state.locked) return;
       e.preventDefault();
       const factor = e.deltaY < 0 ? 1.08 : 1 / 1.08;
       state.scale = Math.max(state.minScale, state.scale * factor);
@@ -520,6 +737,7 @@
 
     img.addEventListener('pointerdown', e => {
       if (!slot.classList.contains('has-image')) return;
+      if (state.locked) return;
       state.dragging = true;
       state.startX = e.clientX - state.x;
       state.startY = e.clientY - state.y;
@@ -539,7 +757,7 @@
       state.dragging = false;
       slot.classList.remove('is-dragging');
       try { img.releasePointerCapture(e.pointerId); } catch {}
-      autoSourceColor();
+      setSourceMode(state.sourceMode);
     });
 
     img.addEventListener('pointercancel', () => {
@@ -555,7 +773,8 @@
           x: state.x,
           y: state.y,
           sourceHtml: source.innerHTML,
-          sourceMode: state.sourceMode
+          sourceMode: state.sourceMode,
+          locked: state.locked
         };
       },
 
@@ -567,6 +786,9 @@
             ? saved.sourceHtml
             : '@출처';
 
+          state.locked = Boolean(saved.locked);
+          updateLockUi();
+
           const finishWithoutImage = () => {
             img.removeAttribute('src');
             slot.classList.remove('has-image');
@@ -575,7 +797,7 @@
             state.y = 0;
             state.naturalFit = 1;
             state.minScale = 0.1;
-            setSourceMode(saved.sourceMode || 'auto');
+            setSourceMode(saved.sourceMode || 'white');
             resolve();
           };
 
@@ -600,7 +822,7 @@
             state.y = Number.isFinite(Number(saved.y)) ? Number(saved.y) : 0;
 
             applyTransform();
-            setSourceMode(saved.sourceMode || 'auto');
+            setSourceMode(saved.sourceMode || 'white');
             resolve();
           };
 
@@ -610,6 +832,99 @@
 
           img.src = saved.src;
         });
+      }
+    });
+  });
+
+
+  // ─────────────────────────────────────────
+  // · 항목 편집
+  // Enter      → 새 항목 "· "
+  // Ctrl+Enter → 같은 항목의 보조 줄(· 없음, 줄간격 조금 좁게)
+  // ─────────────────────────────────────────
+  function splitEditableByBr(editor) {
+    const lines = [];
+    let current = document.createDocumentFragment();
+
+    [...editor.childNodes].forEach(node => {
+      if (node.nodeName === 'BR') {
+        lines.push(current);
+        current = document.createDocumentFragment();
+      } else {
+        current.appendChild(node.cloneNode(true));
+      }
+    });
+    lines.push(current);
+
+    editor.innerHTML = '';
+
+    lines.forEach(fragment => {
+      const div = document.createElement('div');
+      div.appendChild(fragment);
+      const text = div.textContent.trim();
+      div.className = text.startsWith('·') ? 'bullet-line' : 'bullet-subline';
+      if (!div.childNodes.length) div.innerHTML = '<br>';
+      editor.appendChild(div);
+    });
+  }
+
+  function setCaretAfterPrefix(block) {
+    const selection = window.getSelection();
+    const range = document.createRange();
+
+    if (!block.firstChild || block.firstChild.nodeName === 'BR') {
+      block.textContent = block.classList.contains('bullet-line') ? '· ' : '';
+    }
+
+    const target = block.firstChild || block;
+    const length = target.nodeType === Node.TEXT_NODE
+      ? target.textContent.length
+      : target.childNodes.length;
+
+    range.setStart(target, length);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  function insertBulletBlock(editor, continuation = false) {
+    const selection = window.getSelection();
+    const anchorNode = selection?.anchorNode;
+    const anchorEl = anchorNode?.nodeType === Node.TEXT_NODE
+      ? anchorNode.parentElement
+      : anchorNode;
+
+    const currentBlock = anchorEl?.closest?.('.bullet-line, .bullet-subline');
+
+    const block = document.createElement('div');
+    block.className = continuation ? 'bullet-subline' : 'bullet-line';
+    block.textContent = continuation ? '' : '· ';
+
+    if (currentBlock && editor.contains(currentBlock)) {
+      currentBlock.insertAdjacentElement('afterend', block);
+    } else {
+      editor.appendChild(block);
+    }
+
+    setCaretAfterPrefix(block);
+  }
+
+  document.querySelectorAll('.editable').forEach(editor => {
+    const text = editor.textContent.trim();
+    if (!text.startsWith('·')) return;
+
+    editor.classList.add('bullet-editor');
+    splitEditableByBr(editor);
+
+    editor.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+
+      e.preventDefault();
+
+      if (e.ctrlKey || e.metaKey) {
+        insertBulletBlock(editor, true);
+      } else {
+        insertBulletBlock(editor, false);
       }
     });
   });
@@ -667,7 +982,13 @@
 
     Object.entries(dataFieldSelectors).forEach(([key, selector]) => {
       const el = document.querySelector(selector);
-      if (el) fields[key] = el.innerHTML;
+      if (!el) return;
+
+      if (key === 'aTags' || key === 'bTags') {
+        fields[key] = cleanTagHtml(el);
+      } else {
+        fields[key] = el.innerHTML;
+      }
     });
 
     return fields;
@@ -679,7 +1000,13 @@
     Object.entries(dataFieldSelectors).forEach(([key, selector]) => {
       if (!(key in fields)) return;
       const el = document.querySelector(selector);
-      if (el) el.innerHTML = fields[key];
+      if (!el) return;
+
+      if (key === 'aTags' || key === 'bTags') {
+        restoreTagHtml(el, fields[key]);
+      } else {
+        el.innerHTML = fields[key];
+      }
     });
   }
 
