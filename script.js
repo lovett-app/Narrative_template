@@ -247,26 +247,90 @@
     const originalText = exportPngBtn.textContent;
     exportPngBtn.textContent = '저장중...';
     exportPngBtn.disabled = true;
-    document.body.classList.add('exporting');
-    document.body.classList.add('export-desktop');
 
     try {
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
 
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      fitAllNames();
+      /*
+       * 모바일 PNG 저장 핵심:
+       * 실제 화면 DOM을 desktop 클래스로 늘리지 않는다.
+       * html2canvas가 만드는 복제 문서의 viewport만 1536px로 지정해
+       * 그 복제본 안에서 데스크톱(3열) CSS가 적용되도록 한다.
+       */
+      const EXPORT_WINDOW_WIDTH = 1536;
+      const EXPORT_SCALE = window.innerWidth <= 760 ? 2 : 3;
 
       const canvas = await html2canvas(exportTarget, {
         backgroundColor: getComputedStyle(exportTarget).backgroundColor,
-        scale: 3,
+        scale: EXPORT_SCALE,
         useCORS: true,
         logging: false,
         scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: exportTarget.scrollWidth,
-        windowHeight: exportTarget.scrollHeight
+        scrollY: 0,
+        windowWidth: EXPORT_WINDOW_WIDTH,
+        windowHeight: Math.max(3600, document.documentElement.scrollHeight),
+        onclone: (clonedDocument) => {
+          const clonedBody = clonedDocument.body;
+          const clonedTarget = clonedDocument.getElementById('exportTarget');
+
+          // 편집용 UI 숨김
+          clonedBody.classList.add('exporting');
+
+          // 과거 모바일 저장용 강제 클래스가 복제본에 남지 않도록 제거
+          clonedBody.classList.remove('export-desktop');
+
+          // 캡처 순간 transition 때문에 중간 높이가 잡히는 현상 방지
+          const style = clonedDocument.createElement('style');
+          style.textContent = `
+            *, *::before, *::after {
+              animation: none !important;
+              transition: none !important;
+              caret-color: transparent !important;
+            }
+
+            /* 복제 문서에서는 모바일 편집 UI가 아닌 원래 3열 결과물 크기 사용 */
+            #exportTarget {
+              width: 1468px !important;
+              max-width: none !important;
+              margin: 0 !important;
+              padding: 34px 34px 38px !important;
+            }
+
+            #exportTarget .sheet {
+              width: 1400px !important;
+              max-width: none !important;
+              margin: 0 !important;
+            }
+          `;
+          clonedDocument.head.appendChild(style);
+
+          // 모바일에서 자동축소되어 inline font-size가 남은 이름을
+          // 데스크톱 폭 기준으로 다시 계산
+          clonedDocument.querySelectorAll('.name').forEach(nameEl => {
+            let size = 54;
+            const minSize = 20;
+
+            nameEl.style.fontSize = `${size}px`;
+            nameEl.style.whiteSpace = 'nowrap';
+
+            while (nameEl.scrollWidth > nameEl.clientWidth && size > minSize) {
+              size -= 1;
+              nameEl.style.fontSize = `${size}px`;
+            }
+          });
+
+          // 편집 포커스/선택 표시가 PNG에 남지 않게 처리
+          clonedDocument.querySelectorAll('[contenteditable="true"]').forEach(el => {
+            el.blur?.();
+          });
+
+          if (clonedTarget) {
+            clonedTarget.scrollTop = 0;
+            clonedTarget.scrollLeft = 0;
+          }
+        }
       });
 
       const link = document.createElement('a');
@@ -277,9 +341,6 @@
       alert('PNG 저장 중 오류가 발생했습니다.');
       console.error(err);
     } finally {
-      document.body.classList.remove('exporting');
-      document.body.classList.remove('export-desktop');
-      requestAnimationFrame(fitAllNames);
       exportPngBtn.textContent = originalText;
       exportPngBtn.disabled = false;
     }

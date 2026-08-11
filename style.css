@@ -146,13 +146,17 @@ button { border: 0; cursor: pointer; }
 
 .themed-card { border: var(--border-main) solid var(--theme); }
 
-/* A/B 메인 프로필 카드:
-   실제 border의 둥근 '안쪽 경계'가 코너 라벨 위에 얇은 곡선으로 보였기 때문에
-   이 카드에 한해서 border를 제거하고 inset shadow로 같은 두께의 외곽선을 재현한다.
-   inset shadow는 자식인 A/B 라벨보다 아래에서 그려져 라벨 내부에 곡선이 남지 않는다. */
+/* A/B 메인 프로필 카드는 실제 border를 사용한다.
+   html2canvas 복제본에서 ::after 크기가 모바일 폭으로 남아
+   PNG 외곽선만 좁아지는 문제를 막기 위해 가상요소 테두리는 사용하지 않는다. */
 .profile-card.themed-card {
-  border: 0;
-  box-shadow: inset 0 0 0 var(--border-main) var(--theme);
+  border: var(--border-main) solid var(--theme);
+  box-shadow: none;
+}
+
+.profile-card.themed-card::after {
+  content: none !important;
+  display: none !important;
 }
 
 .themed-soft {
@@ -178,9 +182,9 @@ button { border: 0; cursor: pointer; }
 .corner-badge {
   position: absolute;
   z-index: 4;
-  top: 0;
-  width: 62px;
-  height: 62px;
+  top: -1px;
+  width: 63px;
+  height: 63px;
 
   display: grid;
   place-items: center;
@@ -194,12 +198,12 @@ button { border: 0; cursor: pointer; }
 }
 
 .theme-a .corner-badge {
-  left: 0;
+  left: -1px;
   border-radius: 0 0 14px 0;
 }
 
 .theme-b .corner-badge {
-  right: 0;
+  right: -1px;
   border-radius: 0 0 0 14px;
 }
 
@@ -770,86 +774,11 @@ input:focus {
   }
 }
 
-/* 모바일에서도 PNG는 기존 3열 결과물로 저장 */
-body.export-desktop .export-frame {
-  width: 1468px !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 34px 34px 38px !important;
-}
 
-body.export-desktop .sheet {
-  width: 1400px !important;
-  max-width: none !important;
-}
 
-body.export-desktop .top-grid {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1.08fr) minmax(280px, .84fr) minmax(0, 1.08fr) !important;
-  gap: 16px !important;
-}
-
-body.export-desktop #columnA,
-body.export-desktop .relation-column,
-body.export-desktop #columnB {
-  order: initial !important;
-  grid-column: auto !important;
-}
-
-body.export-desktop .pair-images-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 16px !important;
-}
-
-body.export-desktop .details-grid {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 18px !important;
-}
-
-body.export-desktop .identity-top {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  gap: 16px !important;
-}
-
-body.export-desktop .identity-side {
-  min-width: 190px !important;
-  text-align: right !important;
-}
-
-body.export-desktop .name { font-size: 54px; }
-
-body.export-desktop .main-image {
-  height: 408px !important;
-  margin: 16px 16px 0 !important;
-}
-
-body.export-desktop .character-column.level-off .main-image {
-  height: 505px !important;
-}
-
-body.export-desktop .pair-image {
-  height: 560px !important;
-}
-
-body.export-desktop .profile-level-stack .ranking-card {
-  margin-top: -44px !important;
-  padding-top: 56px !important;
-}
-
-body.export-desktop .relation-details {
-  margin-top: -42px !important;
-  padding-top: 56px !important;
-}
-
-body.export-desktop .summary-main {
-  font-size: 28px !important;
-}
-
-.corner-badge::before,
-.corner-badge::after {
-  content: none !important;
+/* PNG 캡처 복제본 안정화 */
+.exporting .no-export,
+.exporting .image-tools,
+.exporting .selection-bold-btn {
   display: none !important;
 }
